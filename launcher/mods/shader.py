@@ -63,26 +63,22 @@ class ModrinthShaders:
     """从 Modrinth 搜索光影包（project_type=shader）。"""
 
     def search(self, query: str, game_version: str = "", limit: int = 20) -> List[dict]:
-        import requests
         facets = [["project_type:shader"]]
         if game_version:
             facets.append([f"versions:{game_version}"])
-        r = requests.get(f"{MODRINTH_API}/search",
-                         params={"query": query, "limit": limit, "index": "relevance",
-                                 "facets": utils.json_dumps(facets)},
-                         headers={"User-Agent": "NebulaLauncher/1.0"}, timeout=30)
-        r.raise_for_status()
-        return r.json().get("hits", [])
+        data = utils.http_get_json(
+            f"{MODRINTH_API}/search",
+            params={"query": query, "limit": limit, "index": "relevance",
+                    "facets": utils.json_dumps(facets)})
+        return data.get("hits", [])
 
     def versions(self, project_id: str, game_version: str = "") -> List[dict]:
-        import requests
         params = {"game_versions": "[]"}
         if game_version:
             params["game_versions"] = utils.json_dumps([game_version])
-        r = requests.get(f"{MODRINTH_API}/project/{project_id}/version",
-                         params=params, headers={"User-Agent": "NebulaLauncher/1.0"}, timeout=30)
-        r.raise_for_status()
-        return r.json()
+        data = utils.http_get_json(f"{MODRINTH_API}/project/{project_id}/version",
+                                   params=params)
+        return data
 
     def pick_file(self, version_info: dict) -> Optional[ModFile]:
         for f in version_info.get("files", []):

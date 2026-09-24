@@ -97,5 +97,12 @@
   "shader_download": "下载光影",
   "shader_installed": "光影已安装：{name}",
   "shader_no_result": "没有找到光影",
-  "modpack_no_result": "没有找到整合包"
+  "modpack_no_result": "没有找到整合包",
+  "btn_open_dir": "打开文件夹",
+  "open_dir_ok": "已打开文件夹：{p}",
+  "open_dir_fail": "无法打开文件夹：{p}",
+  "set_gamedir_hint": "留空 = 启动器所在目录下的 .minecraft",
+  "search": "搜索",
+  "modpack_tag": "整合包",
+  "shader_tag": "光影"
 }

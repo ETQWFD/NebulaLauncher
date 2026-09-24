@@ -4,7 +4,7 @@ import json
 import os
 import threading
 
-from .constants import minecraft_dir, GITHUB_MODS_REPO
+from .constants import ROOT, GITHUB_MODS_REPO
 
 DEFAULTS = {
     "language": "zh_CN",
@@ -12,7 +12,7 @@ DEFAULTS = {
     "ram_mb": 4096,
     "max_ram_mb": 0,               # 0 = 不限制上限
     "java_path": "",               # 空 = 自动检测/下载
-    "game_dir": "",                # 空 = 默认 .minecraft
+    "game_dir": "",                # 空 = 默认启动器所在目录下的 .minecraft
     "auto_close": True,            # 启动游戏后自动关闭启动器
     "close_game_dir": True,        # 游戏进程独立于启动器继续运行
     "theme": "dark",
@@ -55,6 +55,11 @@ class Settings:
                     self.data.update(saved)
             except Exception:
                 pass
+        # 旧版本配置迁移：GitHub 仓库名从旧账号迁移到新账号
+        repo = str(self.data.get("github_mods_repo") or "").strip()
+        if repo and "et2416444244" in repo:
+            self.data["github_mods_repo"] = GITHUB_MODS_REPO
+            self.save()
 
     def save(self):
         with self._lock:
@@ -71,8 +76,14 @@ class Settings:
         self.save()
 
     def game_dir(self) -> str:
+        """游戏目录：默认启动器所在目录下的 .minecraft（用户可直接找到）。"""
         gd = self.get("game_dir") or ""
-        return gd if gd else minecraft_dir()
+        if gd:
+            return gd
+        # 程序所在目录（兼容打包后 exe）：<启动器目录>/.minecraft
+        local = os.path.join(ROOT, ".minecraft")
+        os.makedirs(local, exist_ok=True)
+        return local
 
     def version_dir(self) -> str:
         return os.path.join(self.game_dir(), "versions")

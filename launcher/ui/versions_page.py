@@ -21,7 +21,7 @@ class InstallDialog(QDialog):
         super().__init__(win)
         self.win = win
         self.settings = win.settings
-        self.setWindowTitle("Install")
+        self.setWindowTitle(i18n.tr("dl_title"))
         self.setModal(True)
         self.resize(560, 420)
         self._versions = []
@@ -170,6 +170,10 @@ class VersionsPage(QWidget):
         self.indicator = PageIndicator()
         head.addWidget(self.indicator)
         head.addStretch(1)
+        self.btn_open_dir = QPushButton("")
+        self.btn_open_dir.setProperty("ghost", True)
+        self.btn_open_dir.clicked.connect(lambda: self.win.open_game_dir())
+        head.addWidget(self.btn_open_dir)
         self.btn_install = QPushButton("")
         self.btn_install.setProperty("primary", True)
         self.btn_install.clicked.connect(self._open_install)
@@ -185,6 +189,7 @@ class VersionsPage(QWidget):
     def retranslate(self):
         tr = i18n.tr
         self.indicator.set_text(tr("ver_title"), tr("ver_subtitle"))
+        self.btn_open_dir.setText(tr("btn_open_dir"))
         self.btn_install.setText(tr("ver_install_new"))
         self.refresh()
 

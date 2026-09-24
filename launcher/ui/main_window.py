@@ -158,15 +158,18 @@ class MainWindow(QMainWindow):
 
         # 语言快速切换（底部）
         lang_box = QHBoxLayout()
-        lang_lbl = QLabel("🌐" if False else "文")
+        lang_lbl = QLabel("文")
         lang_lbl.setStyleSheet("color:#8A93A8; font-size:12px;")
         from PySide6.QtWidgets import QComboBox
         self.lang_combo = QComboBox()
         for code, name in i18n.LANGUAGES:
             self.lang_combo.addItem(name, code)
+        # 先 block 信号再设初值：避免页面尚未构建时触发 retranslate 崩溃
+        self.lang_combo.blockSignals(True)
         idx = self.lang_combo.findData(self.settings.get("language"))
         if idx >= 0:
             self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.blockSignals(False)
         self.lang_combo.currentIndexChanged.connect(self._on_lang_change)
         lang_box.addWidget(lang_lbl)
         lang_box.addWidget(self.lang_combo, 1)
@@ -195,7 +198,7 @@ class MainWindow(QMainWindow):
         self.status_label.setObjectName("statusText")
         st_lay.addWidget(self.status_label)
         st_lay.addStretch(1)
-        self.status_version = QLabel("v1.0.0")
+        self.status_version = QLabel("v1.2.0")
         self.status_version.setObjectName("statusText")
         st_lay.addWidget(self.status_version)
         outer.addWidget(self.status_bar)
@@ -225,6 +228,15 @@ class MainWindow(QMainWindow):
         self.nav_buttons[key].setChecked(True)
         self.stack.setCurrentIndex(self._pages[key])
 
+    def open_game_dir(self):
+        """打开游戏目录（文件管理器）。"""
+        from .. import utils
+        gd = self.settings.game_dir()
+        if utils.open_folder(gd):
+            self.toast(i18n.tr("open_dir_ok").format(p=gd))
+        else:
+            self.toast(i18n.tr("open_dir_fail").format(p=gd), ok=False)
+
     def _apply_language(self):
         i18n.set_language(self.settings.get("language"))
         # 侧边栏文字
@@ -232,7 +244,7 @@ class MainWindow(QMainWindow):
                   "mods": i18n.tr("nav_mods"), "settings": i18n.tr("nav_settings")}
         for key, b in self.nav_buttons.items():
             b.setText(f"  {NAV_ICONS[key]}    {labels.get(key, key)}")
-        self.status_version.setText("v1.0.0")
+        self.status_version.setText("v1.2.0")
         self.status_bar.setVisible(True)
 
     def _on_lang_change(self, idx):
@@ -259,6 +271,8 @@ def run() -> int:
     app.setFont(font)
     app.setStyleSheet(theme.QSS)
     settings = Settings()
+    # 启动前先应用已保存的语言（防止窗口构建阶段出现英文/键名）
+    i18n.set_language(settings.get("language", "zh_CN"))
     win = MainWindow(settings)
     win.show()
     return app.exec()

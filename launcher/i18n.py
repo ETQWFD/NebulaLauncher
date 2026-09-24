@@ -57,9 +57,12 @@ def load(lang: str) -> dict:
 
 def set_language(lang: str):
     global _current
+    codes = [c for c, _ in LANGUAGES]
     with _lock:
-        _current = lang if lang in LANGUAGES or os.path.exists(
-            os.path.join(I18N_DIR, f"{lang}.json")) else "zh_CN"
+        if lang in codes or os.path.exists(os.path.join(I18N_DIR, f"{lang}.json")):
+            _current = lang
+        else:
+            _current = "zh_CN"
     # 预加载
     load(_current)
     load(_fallback)

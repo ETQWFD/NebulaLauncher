@@ -5,8 +5,8 @@ import sys
 
 APP_NAME = "Nebula Launcher"
 APP_NAME_CN = "星云启动器"
-APP_VERSION = "1.0.0"
-APP_TAG = "v1.0.0"
+APP_VERSION = "1.2.0"
+APP_TAG = "v1.2.0"
 
 def app_dir() -> str:
     """启动器自身所在目录（兼容打包后的 exe）。"""
@@ -26,28 +26,28 @@ def minecraft_dir() -> str:
     return os.path.join(os.path.expanduser("~"), ".minecraft")
 
 # ---------------------------------------------------------------------------
-# 网络源（官方 + BMCLAPI 镜像，镜像对国内用户更快）
+# 网络源（BMCLAPI 镜像优先：国内更快更稳；官方源作为兜底，全球可用）
 # ---------------------------------------------------------------------------
 MANIFEST_URLS = [
+    "https://bmclapi2.bangbang93.com/mc/game/version_manifest_v2.json",
     "https://launchermeta.mojang.com/mc/game/version_manifest_v2.json",
     "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json",
-    "https://bmclapi2.bangbang93.com/mc/game/version_manifest_v2.json",
 ]
 VERSION_JSON_MIRRORS = [
-    "https://piston-meta.mojang.com/v1/packages/{sha1}/{id}.json",
     "https://bmclapi2.bangbang93.com/version/{id}/json",
+    "https://piston-meta.mojang.com/v1/packages/{sha1}/{id}.json",
 ]
 ASSET_INDEX_MIRRORS = [
-    "https://piston-meta.mojang.com/v1/packages/{sha1}/{id}.json",
     "https://bmclapi2.bangbang93.com/indexes/{id}/{sha1}.json",
+    "https://piston-meta.mojang.com/v1/packages/{sha1}/{id}.json",
 ]
 ASSET_OBJECT_URLS = [
-    "https://resources.download.minecraft.net/{prefix}/{hash}",
     "https://bmclapi2.bangbang93.com/assets/{hash}",
+    "https://resources.download.minecraft.net/{prefix}/{hash}",
 ]
 LIBRARY_URLS = [
-    "https://libraries.minecraft.net/{path}",
     "https://bmclapi2.bangbang93.com/maven/{path}",
+    "https://libraries.minecraft.net/{path}",
 ]
 
 # Fabric / Quilt / Forge 元数据
@@ -62,7 +62,11 @@ JAVA_API = "https://api.adoptium.net/v3/binary/latest/{feature}/ga/{os}/{arch}/j
 # Modrinth 官方模组源
 MODRINTH_API = "https://api.modrinth.com/v2"
 # GitHub Release 模组源（默认指向用户的模组仓库，可在设置中修改）
-GITHUB_MODS_REPO = "et2416444244/NebulaLauncher-Mods"
+GITHUB_MODS_REPO = "ETQWFD/NebulaLauncher-Mods"
+
+# GitHub API / 下载代理前缀（国内网络加速；可留空=直连；示例：https://ghfast.top/、https://ghproxy.net/）
+GITHUB_DL_PROXY = os.environ.get("NEBULA_GH_PROXY", "")   # 下载 GitHub 资产时前置代理
+GITHUB_API_PROXY = os.environ.get("NEBULA_GH_API", "")    # 访问 GitHub API 时前置代理
 
 # 默认 JVM 内存优化参数（Aikar's Flags 精简版 + 常见优化项）
 DEFAULT_JVM_FLAGS = [

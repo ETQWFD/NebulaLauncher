@@ -34,27 +34,19 @@ class GithubModSource:
     def __init__(self, repo: str, token: str = ""):
         self.repo = repo.strip().strip("/")
         self.token = token
-        self._headers = {"User-Agent": "NebulaLauncher/1.0"}
-        if token:
-            self._headers["Authorization"] = f"token {token}"
 
     def releases(self, per_page: int = 30) -> List[GithubRelease]:
-        """获取 releases 及其模组资产（.jar 文件）。"""
-        import requests
+        """获取 releases 及其模组资产（.jar / .zip 文件）。"""
         url = f"https://api.github.com/repos/{self.repo}/releases?per_page={per_page}"
-        r = requests.get(url, headers=self._headers, timeout=30)
-        if r.status_code == 403:
-            raise utils.DownloadError(
-                "GitHub API 访问受限（403，通常是匿名限流）。可在「设置」中为该仓库配置令牌，或稍后重试。")
-        if r.status_code != 200:
-            raise utils.DownloadError(f"GitHub 仓库访问失败 ({r.status_code}): {self.repo}")
+        data = utils.github_api_get(url, token=self.token)
         out = []
-        for rel in r.json():
+        for rel in data:
             assets = []
             for a in rel.get("assets", []):
-                if a.get("name", "").endswith(".jar"):
+                name = a.get("name", "")
+                if name.endswith(".jar") or name.endswith(".zip"):
                     assets.append(ModFile(
-                        name=a["name"], size=a.get("size", 0),
+                        name=name, size=a.get("size", 0),
                         url=a.get("browser_download_url", ""),
                         version=rel.get("tag_name", ""),
                         source="github", project=self.repo,

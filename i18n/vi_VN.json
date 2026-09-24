@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "Mở thư mục",
+  "open_dir_ok": "Đã mở thư mục: {p}",
+  "open_dir_fail": "Không thể mở thư mục: {p}",
+  "set_gamedir_hint": "Trống = .minecraft cạnh trình khởi chạy",
+  "search": "Tìm kiếm",
+  "modpack_tag": "Modpack",
+  "shader_tag": "Shader"
 }

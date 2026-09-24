@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "フォルダを開く",
+  "open_dir_ok": "フォルダを開きました：{p}",
+  "open_dir_fail": "フォルダを開けません：{p}",
+  "set_gamedir_hint": "空欄 = ランチャー横の .minecraft",
+  "search": "検索",
+  "modpack_tag": "Modpack",
+  "shader_tag": "シェーダー"
 }

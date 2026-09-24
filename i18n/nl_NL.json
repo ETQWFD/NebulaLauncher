@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "Map openen",
+  "open_dir_ok": "Map geopend: {p}",
+  "open_dir_fail": "Kan map niet openen: {p}",
+  "set_gamedir_hint": "Leeg = .minecraft naast de launcher",
+  "search": "Zoeken",
+  "modpack_tag": "Modpack",
+  "shader_tag": "Shader"
 }

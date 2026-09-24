@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "打開資料夾",
+  "open_dir_ok": "已打開資料夾：{p}",
+  "open_dir_fail": "無法打開資料夾：{p}",
+  "set_gamedir_hint": "留空 = 啟動器所在目錄下的 .minecraft",
+  "search": "搜尋",
+  "modpack_tag": "整合包",
+  "shader_tag": "光影"
 }

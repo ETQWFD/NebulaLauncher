@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "فتح المجلد",
+  "open_dir_ok": "تم فتح المجلد: {p}",
+  "open_dir_fail": "تعذر فتح المجلد: {p}",
+  "set_gamedir_hint": "فارغ = .minecraft بجانب المشغل",
+  "search": "بحث",
+  "modpack_tag": "حزمة التعديلات",
+  "shader_tag": "الشادر"
 }

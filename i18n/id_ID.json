@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "Buka folder",
+  "open_dir_ok": "Folder dibuka: {p}",
+  "open_dir_fail": "Tidak dapat membuka folder: {p}",
+  "set_gamedir_hint": "Kosong = .minecraft di samping peluncur",
+  "search": "Cari",
+  "modpack_tag": "Modpack",
+  "shader_tag": "Shader"
 }

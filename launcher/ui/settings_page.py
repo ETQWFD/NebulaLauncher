@@ -40,9 +40,11 @@ class SettingsPage(QWidget):
         self.lang_combo = QComboBox()
         for code, name in i18n.LANGUAGES:
             self.lang_combo.addItem(name, code)
+        self.lang_combo.blockSignals(True)
         idx = self.lang_combo.findData(self.settings.get("language"))
         if idx >= 0:
             self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.blockSignals(False)
         self.lang_combo.currentIndexChanged.connect(self._on_lang)
         g1.addWidget(self.lbl_lang, 0, 0)
         g1.addWidget(self.lang_combo, 0, 1)
@@ -73,14 +75,19 @@ class SettingsPage(QWidget):
         self.lbl_dir = QLabel("")
         self.lbl_dir.setProperty("section", True)
         self.dir_edit = QLineEdit(self.settings.get("game_dir"))
+        self.dir_edit.setPlaceholderText(i18n.tr("set_gamedir_hint"))
         self.dir_edit.textChanged.connect(lambda t: self.settings.set("game_dir", t.strip()))
         self.btn_dir = QPushButton("...")
         self.btn_dir.setProperty("ghost", True)
         self.btn_dir.setFixedWidth(44)
         self.btn_dir.clicked.connect(self._pick_dir)
+        self.btn_open = QPushButton("")
+        self.btn_open.setProperty("ghost", True)
+        self.btn_open.clicked.connect(lambda: self.win.open_game_dir())
         g2.addWidget(self.lbl_dir, 1, 0)
         g2.addWidget(self.dir_edit, 1, 1)
         g2.addWidget(self.btn_dir, 1, 2)
+        g2.addWidget(self.btn_open, 1, 3)
         c2.layout().addLayout(g2)
         body.addWidget(c2)
 
@@ -141,8 +148,9 @@ class SettingsPage(QWidget):
         self.lbl_auto.setText(tr("set_autoclose"))
         self.lbl_jvm.setText(tr("set_jvm"))
         self.lbl_repo.setText(tr("set_modrepo"))
+        self.btn_open.setText(tr("btn_open_dir"))
         self.btn_java_detect.setText(tr("set_autodetect"))
-        self.info.setText(tr("set_about").format(ver="1.0.0"))
+        self.info.setText(tr("set_about").format(ver="1.2.0"))
 
     # ------------------------------------------------------------------
     def _pick_java(self):

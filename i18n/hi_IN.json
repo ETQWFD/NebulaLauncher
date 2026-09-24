@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "फ़ोल्डर खोलें",
+  "open_dir_ok": "फ़ोल्डर खोला गया: {p}",
+  "open_dir_fail": "फ़ोल्डर नहीं खोल सके: {p}",
+  "set_gamedir_hint": "खाली = लॉन्चर के पास .minecraft",
+  "search": "खोजें",
+  "modpack_tag": "मॉडपैक",
+  "shader_tag": "शेडर"
 }

@@ -89,6 +89,20 @@ def install_version(game_dir: str, version: MCVersion, vdata: Dict,
         progress and progress(0.10 + 0.75 * (done_steps / total_steps), f"lib:{rel}")
         done_steps += 1
 
+    # 2.5 解压 natives（LWJGL 等原生库），不处理则游戏无法启动
+    if native_jars:
+        stage_cb and stage_cb("[2.5/3] 解压原生库 (natives)")
+        natives_dir = os.path.join(vdir, "natives")
+        os.makedirs(natives_dir, exist_ok=True)
+        for jar_path, _ in native_jars:
+            if not os.path.exists(jar_path):
+                continue
+            try:
+                utils.extract_zip_file(jar_path, natives_dir)
+            except Exception:
+                # 某些库并非 zip（如 pom / 无 natives），静默跳过
+                pass
+
     # 3. 资产（asset index + objects）
     stage_cb and stage_cb("[3/3] 下载游戏资产")
     assets = vdata.get("assetIndex", {})

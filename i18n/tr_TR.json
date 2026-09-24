@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "Klasörü aç",
+  "open_dir_ok": "Klasör açıldı: {p}",
+  "open_dir_fail": "Klasör açılamadı: {p}",
+  "set_gamedir_hint": "Boş = başlatıcının yanında .minecraft",
+  "search": "Ara",
+  "modpack_tag": "Modpack",
+  "shader_tag": "Shader"
 }

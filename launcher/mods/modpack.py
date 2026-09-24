@@ -23,22 +23,16 @@ class ModpackInstaller:
     # ------------------------------------------------------------------
     @staticmethod
     def search(query: str, limit: int = 20) -> List[dict]:
-        import requests
         facets = utils.json_dumps([["project_type:modpack"]])
-        r = requests.get(f"{MODRINTH_API}/search",
-                         params={"query": query, "limit": limit,
-                                 "index": "downloads", "facets": facets},
-                         headers={"User-Agent": "NebulaLauncher/1.0"}, timeout=30)
-        r.raise_for_status()
-        return r.json().get("hits", [])
+        data = utils.http_get_json(
+            f"{MODRINTH_API}/search",
+            params={"query": query, "limit": limit,
+                    "index": "downloads", "facets": facets})
+        return data.get("hits", [])
 
     @staticmethod
     def versions(project_id: str) -> List[dict]:
-        import requests
-        r = requests.get(f"{MODRINTH_API}/project/{project_id}/version",
-                         headers={"User-Agent": "NebulaLauncher/1.0"}, timeout=30)
-        r.raise_for_status()
-        return r.json()
+        return utils.http_get_json(f"{MODRINTH_API}/project/{project_id}/version")
 
     @staticmethod
     def version_file(version_info: dict) -> Optional[dict]:

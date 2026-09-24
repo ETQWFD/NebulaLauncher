@@ -112,7 +112,7 @@ def build_command(game_dir: str, vdata: Dict, vid: str, username: str,
         "resolution_height": str(resolution[1] if resolution else 480),
         "natives_directory": natives_dir,
         "launcher_name": "NebulaLauncher",
-        "launcher_version": "1.0.0",
+        "launcher_version": "1.2.0",
         "classpath": classpath,
         "classpath_separator": os.pathsep,
     }

@@ -118,6 +118,10 @@ class HomePage(QWidget):
         self.btn_refresh.setProperty("ghost", True)
         self.btn_refresh.clicked.connect(self.refresh_versions)
         row.addWidget(self.btn_refresh)
+        self.btn_open_dir = QPushButton("")
+        self.btn_open_dir.setProperty("ghost", True)
+        self.btn_open_dir.clicked.connect(lambda: self.win.open_game_dir())
+        row.addWidget(self.btn_open_dir)
         row.addStretch(1)
         lv.addLayout(row)
         lv.addStretch(1)
@@ -184,10 +188,23 @@ class HomePage(QWidget):
         self.ram_label.setText(tr("ram_fmt").format(mb=self.ram_slider.value(),
                                                     gb=self.ram_slider.value() / 1024))
         self.btn_refresh.setText(tr("btn_refresh"))
+        self.btn_open_dir.setText(tr("btn_open_dir"))
         self.launch_btn.setText(tr("btn_launch"))
         self.stage_label.setText(tr("idle"))
         self.big_type.setText(tr("home_ready"))
         self.set_status_text()
+        # 重建账号下拉（语言切换后选项文字也要跟着变）
+        kind = self.settings.get("account_type") or "offline"
+        self.account_combo.blockSignals(True)
+        self.account_combo.clear()
+        self.account_combo.addItem(i18n.tr("acct_offline"), "offline")
+        self.account_combo.addItem(i18n.tr("acct_microsoft"), "microsoft")
+        self.account_combo.addItem(i18n.tr("acct_custom"), "custom")
+        idx = self.account_combo.findData(kind)
+        if idx >= 0:
+            self.account_combo.setCurrentIndex(idx)
+        self.account_combo.blockSignals(False)
+        self._account_changed(self.account_combo.currentIndex())
 
     def set_status_text(self):
         vid = self.version_combo.currentData()

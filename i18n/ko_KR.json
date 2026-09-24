@@ -97,5 +97,12 @@
   "shader_download": "Download Shader",
   "shader_installed": "Shader installed: {name}",
   "shader_no_result": "No shaders found",
-  "modpack_no_result": "No modpacks found"
+  "modpack_no_result": "No modpacks found",
+  "btn_open_dir": "폴더 열기",
+  "open_dir_ok": "폴더를 열었습니다: {p}",
+  "open_dir_fail": "폴더를 열 수 없습니다: {p}",
+  "set_gamedir_hint": "비움 = 런처 옆 .minecraft",
+  "search": "검색",
+  "modpack_tag": "모드팩",
+  "shader_tag": "셰이더"
 }
