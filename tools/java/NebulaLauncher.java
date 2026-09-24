@@ -259,7 +259,27 @@ public class NebulaLauncher {
         return allowed;
     }
 
-    static List<String> buildArgs(String mcDir, Json vdata, String vid, String username, int ramMb) throws Exception {
+    static String downloadAuthlib(File dir) throws Exception {
+        File rt = new File(dir, "runtime"); rt.mkdirs();
+        File jar = new File(rt, "authlib-injector.jar");
+        if (jar.exists()) return jar.getPath();
+        String url = null;
+        try {
+            String meta = new String(get("https://api.github.com/repos/yushijinhun/authlib-injector/releases/latest", 25000), StandardCharsets.UTF_8);
+            Json assets = Json.parse(meta).get("assets");
+            if (assets != null) {
+                for (Json a : assets.arr()) {
+                    if (a.str("name") != null && a.str("name").endsWith(".jar")) { url = a.str("browser_download_url"); break; }
+                }
+            }
+        } catch (Exception ignored) {}
+        if (url == null) url = "https://authlib-injector.yushi.moe/artifact/latest/authlib-injector.jar";
+        download(url, jar, null);
+        return jar.getPath();
+    }
+
+    static List<String> buildArgs(String mcDir, Json vdata, String vid, String username, int ramMb,
+                                  String authlibFlag) throws Exception {
         String java = javaPath();
         String client = vdata.get("downloads").get("client").str("url");
         String mainClass = vdata.str("mainClass") == null ? "net.minecraft.client.main.Main" : vdata.str("mainClass");
@@ -268,6 +288,7 @@ public class NebulaLauncher {
         args.add("-Xmx" + ramMb + "M");
         args.add("-Xms" + Math.max(ramMb / 4, 256) + "M");
         for (String f : JVM_FLAGS) args.add(f);
+        if (authlibFlag != null && !authlibFlag.isEmpty()) args.add(authlibFlag);
         String natives = new File(mcDir, "versions/" + vid + "/natives").getPath();
         // classpath
         StringBuilder cp = new StringBuilder();
@@ -444,13 +465,33 @@ public class NebulaLauncher {
 
         JLabel aTitle = new JLabel("游戏账号"); aTitle.setForeground(DIM);
         g.gridy = 4; g.gridwidth = 1; g.anchor = GridBagConstraints.WEST; right.add(aTitle, g);
-        g.gridy = 5; g.gridwidth = 2; g.anchor = GridBagConstraints.CENTER; right.add(nameField, g);
+        JComboBox<String> acctBox = new JComboBox<>(new String[]{"离线账号", "自定义服务器"});
+        acctBox.setBackground(CARD); acctBox.setForeground(TEXT);
+        g.gridy = 4; g.gridx = 1; g.gridwidth = 1; g.anchor = GridBagConstraints.CENTER; right.add(acctBox, g);
+        g.gridy = 5; g.gridx = 0; g.gridwidth = 2; g.anchor = GridBagConstraints.CENTER; right.add(nameField, g);
+        JTextField serverField = new JTextField();
+        serverField.setBackground(CARD); serverField.setForeground(TEXT); serverField.setCaretColor(TEXT);
+        serverField.setToolTipText("authlib 服务器地址，如 https://example.com/api/authlib-injector");
+        serverField.setVisible(false);
+        g.gridy = 6; g.gridwidth = 2; right.add(serverField, g);
+        JPasswordField pwdField = new JPasswordField();
+        pwdField.setBackground(CARD); pwdField.setForeground(TEXT); pwdField.setCaretColor(TEXT);
+        pwdField.setToolTipText("服务器账号密码");
+        pwdField.setVisible(false);
+        g.gridy = 7; g.gridwidth = 2; right.add(pwdField, g);
 
-        g.gridy = 6; g.gridwidth = 2; g.ipady = 14;
+        acctBox.addActionListener(e -> {
+            boolean custom = acctBox.getSelectedIndex() == 1;
+            serverField.setVisible(custom);
+            pwdField.setVisible(custom);
+            frame.pack();
+        });
+
+        g.gridy = 8; g.gridwidth = 2; g.ipady = 14;
         right.add(launchBtn, g);
         g.ipady = 0;
-        g.gridy = 7; right.add(status, g);
-        g.gridy = 8; g.fill = GridBagConstraints.HORIZONTAL; right.add(bar, g);
+        g.gridy = 9; right.add(status, g);
+        g.gridy = 10; g.fill = GridBagConstraints.HORIZONTAL; right.add(bar, g);
 
         // 底部：语言
         JPanel bottom = new JPanel(new BorderLayout()); bottom.setOpaque(false);
@@ -567,12 +608,31 @@ public class NebulaLauncher {
             if (!vj.exists()) { status.setText("Version JSON missing"); return; }
             String username = nameField.getText().trim().isEmpty() ? "Steve" : nameField.getText().trim();
             int ramMb = ram.getValue();
+            final String authlibFlag;
+            if (acctBox.getSelectedIndex() == 1) {
+                String server = serverField.getText().trim();
+                String pwd = new String(pwdField.getPassword()).trim();
+                if (server.isEmpty() || pwd.isEmpty() || username.isEmpty()) {
+                    status.setText("请填写服务器地址、账号与密码");
+                    return;
+                }
+                try {
+                    String jar = downloadAuthlib(dir);
+                    authlibFlag = "-javaagent:" + jar + "=" + server;
+                    status.setText("自定义服务器模式 · authlib-injector 就绪");
+                } catch (Exception ex) {
+                    status.setText("authlib 下载失败: " + ex.getMessage());
+                    return;
+                }
+            } else {
+                authlibFlag = null;
+            }
             launchBtn.setEnabled(false);
             status.setText(tr(lang, "launching"));
             new Thread(() -> {
                 try {
                     Json vdata = Json.parse(new String(Files.readAllBytes(vj.toPath()), StandardCharsets.UTF_8));
-                    List<String> cmd = buildArgs(dir.getPath(), vdata, vid, username, ramMb);
+                    List<String> cmd = buildArgs(dir.getPath(), vdata, vid, username, ramMb, authlibFlag);
                     // 日志
                     File logDir = new File(dir, "logs"); logDir.mkdirs();
                     ProcessBuilder pb = new ProcessBuilder(cmd);
