@@ -136,3 +136,7 @@ footer { border-top: 1px solid var(--line); padding: 44px 0; text-align: center;
   .hero-stats { gap: 34px; }
   .section { padding: 72px 0; }
 }
+
+/* Android 下载区块 */
+.small-title { font-size: 20px; margin-top: 26px; }
+#download .dl { margin-bottom: 8px; }
