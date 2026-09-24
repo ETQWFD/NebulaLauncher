@@ -24,6 +24,14 @@ DEFAULTS = {
     "mirror": "auto",              # auto | official | bmclapi
     "check_update": True,
     "show_news": True,
+    # 账号体系：offline=离线  microsoft=正版  custom=自定义服务器
+    "account_type": "offline",
+    "custom_server_url": "",
+    "custom_username": "",
+    "custom_password": "",
+    "microsoft_name": "",
+    "microsoft_token": "",
+    "microsoft_uuid": "",
 }
 
 

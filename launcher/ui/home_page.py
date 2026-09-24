@@ -77,9 +77,40 @@ class HomePage(QWidget):
         t3.setProperty("section", True)
         lv.addWidget(t3)
         self.t3 = t3
+
+        self.account_combo = QComboBox()
+        self.account_combo.setMinimumHeight(36)
+        lv.addWidget(self.account_combo)
         self.name_edit = QLineEdit(self.settings.get("username", "Steve"))
-        self.name_edit.setMinimumHeight(38)
+        self.name_edit.setMinimumHeight(36)
         lv.addWidget(self.name_edit)
+
+        # 自定义服务器账号（authlib-injector）
+        self.custom_server_edit = QLineEdit(self.settings.get("custom_server_url"))
+        self.custom_server_edit.setPlaceholderText("authlib 服务器地址，如 https://example.com/api/authlib-injector")
+        self.custom_server_edit.setMinimumHeight(34)
+        self.custom_server_edit.setVisible(False)
+        lv.addWidget(self.custom_server_edit)
+        self.custom_pwd_edit = QLineEdit(self.settings.get("custom_password"))
+        self.custom_pwd_edit.setPlaceholderText("")
+        self.custom_pwd_edit.setEchoMode(QLineEdit.Password)
+        self.custom_pwd_edit.setMinimumHeight(34)
+        self.custom_pwd_edit.setVisible(False)
+        lv.addWidget(self.custom_pwd_edit)
+
+        # 正版微软登录按钮
+        self.btn_ms_login = QPushButton("")
+        self.btn_ms_login.setProperty("ghost", True)
+        self.btn_ms_login.setVisible(False)
+        self.btn_ms_login.clicked.connect(self._ms_login)
+        lv.addWidget(self.btn_ms_login)
+        self.ms_status = QLabel("")
+        self.ms_status.setProperty("subtitle", True)
+        self.ms_status.setVisible(False)
+        lv.addWidget(self.ms_status)
+
+        self.account_combo.currentIndexChanged.connect(self._account_changed)
+        lv.addSpacing(4)
 
         # 快捷操作
         row = QHBoxLayout()
@@ -133,6 +164,7 @@ class HomePage(QWidget):
 
         outer.addLayout(body, 1)
         self._ram_changed(self.ram_slider.value())
+        self._setup_accounts()
 
     # ------------------------------------------------------------------
     def retranslate(self):
@@ -186,12 +218,119 @@ class HomePage(QWidget):
         self.win.toast(i18n.tr("versions_loaded").format(n=len(installed)))
 
     # ------------------------------------------------------------------
+    # 账号体系
+    # ------------------------------------------------------------------
+    def _setup_accounts(self):
+        self.account_combo.clear()
+        self.account_combo.addItem(i18n.tr("acct_offline"), "offline")
+        self.account_combo.addItem(i18n.tr("acct_microsoft"), "microsoft")
+        self.account_combo.addItem(i18n.tr("acct_custom"), "custom")
+        idx = self.account_combo.findData(self.settings.get("account_type"))
+        if idx >= 0:
+            self.account_combo.setCurrentIndex(idx)
+        self._account_changed(idx)
+
+    def _account_changed(self, idx):
+        kind = self.account_combo.itemData(idx) or "offline"
+        self.settings.set("account_type", kind)
+        is_off = kind == "offline"
+        is_ms = kind == "microsoft"
+        is_cu = kind == "custom"
+        self.name_edit.setPlaceholderText(i18n.tr("acct_name_hint"))
+        self.custom_server_edit.setVisible(is_cu)
+        self.custom_pwd_edit.setVisible(is_cu)
+        self.custom_pwd_edit.setPlaceholderText(i18n.tr("acct_pwd_hint"))
+        self.btn_ms_login.setVisible(is_ms)
+        self.ms_status.setVisible(is_ms)
+        if is_ms:
+            if self.settings.get("microsoft_name"):
+                self.ms_status.setText(i18n.tr("acct_ms_logged").format(
+                    n=self.settings.get("microsoft_name")))
+                self.btn_ms_login.setText(i18n.tr("acct_ms_relogin"))
+            else:
+                self.ms_status.setText(i18n.tr("acct_ms_notlogin"))
+                self.btn_ms_login.setText(i18n.tr("acct_ms_login"))
+        if is_cu:
+            self.custom_server_edit.setPlaceholderText(i18n.tr("acct_server_hint"))
+
+    def _ms_login(self):
+        from .. import auth as auth_mod
+        from PySide6.QtWidgets import QInputDialog
+        flow = auth_mod.MicrosoftDeviceFlow()
+        try:
+            dev = flow.request_device_code()
+        except Exception as e:
+            self.win.toast(i18n.tr("acct_ms_fail").format(e=e), ok=False)
+            return
+        code, ok = QInputDialog.getText(
+            self, i18n.tr("acct_ms_login"),
+            i18n.tr("acct_ms_code").format(code=dev["user_code"], uri=flow.verification_uri))
+        if not ok:
+            self.win.toast(i18n.tr("acct_cancel"), ok=False)
+            return
+        self.ms_status.setText(i18n.tr("acct_ms_wait"))
+        self.win.set_status(i18n.tr("acct_ms_wait"))
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            return flow.full_login()
+
+        def ok(info):
+            self.settings.set("microsoft_name", info["username"])
+            self.settings.set("microsoft_token", info["access_token"])
+            self.settings.set("microsoft_uuid", info["uuid"])
+            self.settings.set("username", info["username"])
+            self.name_edit.setText(info["username"])
+            self._account_changed(self.account_combo.currentIndex())
+            self.win.toast(i18n.tr("acct_ms_ok").format(n=info["username"]))
+
+        def fail(e):
+            self.win.toast(i18n.tr("acct_ms_fail").format(e=e), ok=False)
+            self._account_changed(self.account_combo.currentIndex())
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+    def _resolve_account(self):
+        """返回 (username, access_token, uuid, extra_jvm_flags)。"""
+        kind = self.settings.get("account_type")
+        extra = []
+        if kind == "microsoft":
+            name = self.settings.get("microsoft_name") or self.name_edit.text().strip() or "Steve"
+            return name, self.settings.get("microsoft_token") or "0", \
+                   self.settings.get("microsoft_uuid") or "", extra
+        if kind == "custom":
+            server = self.custom_server_edit.text().strip()
+            username = self.name_edit.text().strip()
+            password = self.custom_pwd_edit.text()
+            if not server or not username or not password:
+                raise RuntimeError(i18n.tr("acct_custom_need"))
+            self.settings.set("custom_server_url", server)
+            self.settings.set("custom_username", username)
+            self.settings.set("custom_password", password)
+            # authlib-injector：下载并生成 javaagent 参数
+            from .. import authlib
+            jar = authlib.authlib_jar()
+            if not jar:
+                jar = authlib.download_authlib()
+            extra.append(authlib.authlib_flag(jar, server))
+            return username, "0", "", extra
+        # 离线
+        username = self.name_edit.text().strip() or "Steve"
+        return username, "0", "", extra
+
+    # ------------------------------------------------------------------
     def launch_game(self):
         vid = self.version_combo.currentData()
         if not vid:
             self.win.toast(i18n.tr("no_version_hint"), ok=False)
             return
-        username = self.name_edit.text().strip() or "Steve"
+        try:
+            username, token, uuid_hex, extra_flags = self._resolve_account()
+        except Exception as e:
+            self.win.toast(str(e), ok=False)
+            return
         self.settings.set("username", username)
         game_dir = self.settings.game_dir()
         vj = os.path.join(game_dir, "versions", vid, f"{vid}.json")
@@ -211,11 +350,11 @@ class HomePage(QWidget):
             # 自动下载
             self.win.set_status(i18n.tr("dl_java").format(v=need))
             self.progress_bar.setValue(0)
-            self._auto_java(need, vid, vdata, username, game_dir)
+            self._auto_java(need, vid, vdata, username, game_dir, token, uuid_hex, extra_flags)
             return
-        self._do_launch(java_path, vid, vdata, username, game_dir)
+        self._do_launch(java_path, vid, vdata, username, game_dir, token, uuid_hex, extra_flags)
 
-    def _auto_java(self, feature, vid, vdata, username, game_dir):
+    def _auto_java(self, feature, vid, vdata, username, game_dir, token="0", uuid_hex="", extra_flags=None):
         def job(progress=None, stage_cb=None, cancel=None):
             p = java_mod.download_java(feature, progress=progress, stage_cb=stage_cb)
             self.settings.set("java_path", p)
@@ -223,7 +362,7 @@ class HomePage(QWidget):
 
         def ok(path):
             self.win.toast(i18n.tr("java_ready"))
-            self._do_launch(path, vid, vdata, username, game_dir)
+            self._do_launch(path, vid, vdata, username, game_dir, token, uuid_hex, extra_flags)
 
         self.worker = TaskWorker(job)
         self.worker.progress.connect(lambda f, s: self._show_progress(f, s))
@@ -231,14 +370,17 @@ class HomePage(QWidget):
         self.worker.failed.connect(lambda e: (self.win.toast(e, ok=False), self._show_progress(0, e)))
         self.worker.start()
 
-    def _do_launch(self, java_path, vid, vdata, username, game_dir):
+    def _do_launch(self, java_path, vid, vdata, username, game_dir, token="0", uuid_hex="", extra_flags=None):
         ram = self.settings.get("ram_mb", 4096)
         extra = self.settings.get("jvm_flags_extra", "")
+        if extra_flags:
+            extra = (extra + " " + " ".join(extra_flags)).strip()
         log_path = os.path.join(game_dir, "logs", "nebulalauncher.log")
 
         def launch_fn():
             return launch.launch(game_dir, vdata, vid, username, ram, java_path,
-                                 extra_flags=extra, stdout_log=log_path)
+                                 extra_flags=extra, access_token=token, uuid_hex=uuid_hex or None,
+                                 stdout_log=log_path)
 
         self.launch_btn.setEnabled(False)
         self.launch_btn.setText(i18n.tr("launching"))

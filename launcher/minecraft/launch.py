@@ -169,12 +169,14 @@ class GameProcess:
 
 def launch(game_dir: str, vdata: Dict, vid: str, username: str,
            ram_mb: int, java_path: str, extra_flags: str = "",
-           access_token: str = "0", server: Optional[str] = None, port: int = 25565,
+           access_token: str = "0", uuid_hex: Optional[str] = None,
+           server: Optional[str] = None, port: int = 25565,
            fullscreen: bool = False, resolution: Optional[tuple] = None,
            stdout_log: Optional[str] = None) -> GameProcess:
     """启动游戏，返回 GameProcess。"""
     cmd = build_command(game_dir, vdata, vid, username, ram_mb, java_path,
-                        extra_flags, access_token, server=server, port=port,
+                        extra_flags, access_token, uuid_hex,
+                        server=server, port=port,
                         fullscreen=fullscreen, resolution=resolution)
     if stdout_log:
         log_dir = os.path.dirname(stdout_log)

@@ -84,6 +84,56 @@ class ModsPage(QWidget):
         ml.addWidget(self.mr_list, 1)
         self.tabs.addTab(mr, "modrinth")
 
+        # 标签4：整合包（Modrinth + 本地导入）
+        mp = QWidget()
+        mpl = QVBoxLayout(mp)
+        mpl.setContentsMargins(0, 0, 0, 0)
+        mpl.setSpacing(8)
+        prow = QHBoxLayout()
+        self.mp_search = QLineEdit()
+        self.mp_search.setPlaceholderText("search modpacks...")
+        self.mp_search.returnPressed.connect(self.search_modpacks)
+        btn_mp = QPushButton("search")
+        btn_mp.setProperty("ghost", True)
+        btn_mp.clicked.connect(self.search_modpacks)
+        btn_imp = QPushButton("import")
+        btn_imp.setProperty("ghost", True)
+        btn_imp.clicked.connect(self.import_modpack)
+        prow.addWidget(self.mp_search, 1)
+        prow.addWidget(btn_mp)
+        prow.addWidget(btn_imp)
+        mpl.addLayout(prow)
+        self.mp_list = QListWidget()
+        self.mp_list.setObjectName("modList")
+        mpl.addWidget(self.mp_list, 1)
+        self.tabs.addTab(mp, "modpack")
+
+        # 标签5：光影（Modrinth 搜索 + 已安装管理）
+        sh = QWidget()
+        shl = QVBoxLayout(sh)
+        shl.setContentsMargins(0, 0, 0, 0)
+        shl.setSpacing(8)
+        srow2 = QHBoxLayout()
+        self.sh_search = QLineEdit()
+        self.sh_search.setPlaceholderText("search shaders...")
+        self.sh_search.returnPressed.connect(self.search_shaders)
+        btn_sh = QPushButton("search")
+        btn_sh.setProperty("ghost", True)
+        btn_sh.clicked.connect(self.search_shaders)
+        srow2.addWidget(self.sh_search, 1)
+        srow2.addWidget(btn_sh)
+        shl.addLayout(srow2)
+        self.sh_list = QListWidget()
+        self.sh_list.setObjectName("modList")
+        shl.addWidget(self.sh_list, 1)
+        lbl_sh = QLabel("installed shaders")
+        lbl_sh.setProperty("section", True)
+        shl.addWidget(lbl_sh)
+        self.sh_installed = QListWidget()
+        self.sh_installed.setObjectName("modList")
+        shl.addWidget(self.sh_installed, 1)
+        self.tabs.addTab(sh, "shader")
+
         self.retranslate()
 
     # ------------------------------------------------------------------
@@ -93,8 +143,13 @@ class ModsPage(QWidget):
         self.tabs.setTabText(0, tr("mods_installed"))
         self.tabs.setTabText(1, "GitHub Releases")
         self.tabs.setTabText(2, "Modrinth")
+        self.tabs.setTabText(3, tr("modpack_tab"))
+        self.tabs.setTabText(4, tr("shader_tab"))
         self.mr_search.setPlaceholderText(tr("mods_search_hint"))
+        self.mp_search.setPlaceholderText(tr("modpack_search_hint"))
+        self.sh_search.setPlaceholderText(tr("mods_search_hint"))
         self.refresh_installed()
+        self.refresh_shaders()
         if self._github_cache:
             self.load_github()
 
@@ -269,3 +324,215 @@ class ModsPage(QWidget):
         self.worker.finished_ok.connect(ok)
         self.worker.failed.connect(fail)
         self.worker.start()
+
+    # ------------------------------------------------------------------
+    # 整合包
+    # ------------------------------------------------------------------
+    def search_modpacks(self):
+        query = self.mp_search.text().strip()
+        if not query:
+            return
+        from ..mods.modpack import ModpackInstaller
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            return ModpackInstaller.search(query, limit=15)
+
+        def ok(hits):
+            self.mp_list.clear()
+            if not hits:
+                self.win.toast(i18n.tr("modpack_no_result"), ok=False)
+            for h in hits:
+                item = QListWidgetItem()
+                w = QWidget()
+                lay = QHBoxLayout(w)
+                lay.setContentsMargins(10, 4, 10, 4)
+                nm = QLabel(h.get("title", "?"))
+                nm.setStyleSheet("font-size:13px; color:#EAF0FF;")
+                info = QLabel(f"整合包 · {h.get('downloads', 0)} DL")
+                info.setProperty("subtitle", True)
+                btn = QPushButton(i18n.tr("modpack_install"))
+                btn.setProperty("primary", True)
+                btn.setCursor(Qt.PointingHandCursor)
+                pid = h.get("project_id")
+                btn.clicked.connect(lambda _, p=pid, t=h.get("title"): self._install_modpack(p, t))
+                lay.addWidget(nm, 1)
+                lay.addWidget(info)
+                lay.addWidget(btn)
+                self.mp_list.addItem(item)
+                self.mp_list.setItemWidget(item, w)
+                item.setSizeHint(w.sizeHint())
+
+        def fail(e):
+            self.win.toast(str(e), ok=False)
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+    def _install_modpack(self, project_id, title):
+        from ..mods.modpack import ModpackInstaller
+        inst = ModpackInstaller(self.settings.game_dir())
+        self.win.set_status(i18n.tr("modpack_install") + " " + title)
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            vers = ModpackInstaller.versions(project_id)
+            if not vers:
+                raise RuntimeError(i18n.tr("mods_no_version"))
+            vi = vers[0]
+            f = ModpackInstaller.version_file(vi)
+            if not f:
+                raise RuntimeError(i18n.tr("mods_no_file"))
+            url = f.get("url") or next((u for u in f.get("urls", []) if u), None)
+            if not url:
+                raise RuntimeError(i18n.tr("mods_no_file"))
+            import io
+            data = utils_http_get(url)
+            return inst.install_mrpack_bytes(data, name=title, progress=progress, stage_cb=stage_cb, cancel=cancel)
+
+        def ok(info):
+            self.refresh_installed()
+            self.win.toast(i18n.tr("modpack_installed").format(name=info["name"], mods=info["mods"]))
+
+        def fail(e):
+            self.win.toast(i18n.tr("modpack_fail").format(e=e), ok=False)
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+    def import_modpack(self):
+        from PySide6.QtWidgets import QFileDialog
+        path, _ = QFileDialog.getOpenFileName(self, i18n.tr("modpack_import"),
+                                              "", "Modpack (*.mrpack *.zip)")
+        if not path:
+            return
+        from ..mods.modpack import ModpackInstaller
+        inst = ModpackInstaller(self.settings.game_dir())
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            return inst.install_mrpack_file(path, progress=progress, stage_cb=stage_cb, cancel=cancel)
+
+        def ok(info):
+            self.refresh_installed()
+            self.win.toast(i18n.tr("modpack_installed").format(name=info["name"], mods=info["mods"]))
+
+        def fail(e):
+            self.win.toast(i18n.tr("modpack_fail").format(e=e), ok=False)
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+    # ------------------------------------------------------------------
+    # 光影
+    # ------------------------------------------------------------------
+    def refresh_shaders(self):
+        from ..mods.shader import ShaderManager
+        mgr = ShaderManager(self.settings.game_dir())
+        self.sh_installed.clear()
+        for s in mgr.scan():
+            item = QListWidgetItem()
+            w = QWidget()
+            lay = QHBoxLayout(w)
+            lay.setContentsMargins(10, 4, 10, 4)
+            nm = QLabel(s.name)
+            nm.setStyleSheet("font-size:13px; color:#EAF0FF;")
+            sz = QLabel(f"{s.size/1024/1024:.2f} MB")
+            sz.setProperty("subtitle", True)
+            btn_d = QPushButton(i18n.tr("ver_delete"))
+            btn_d.setProperty("danger", True)
+            btn_d.setCursor(Qt.PointingHandCursor)
+            btn_d.clicked.connect(lambda _, ss=s: self._remove_shader(ss))
+            lay.addWidget(nm, 1)
+            lay.addWidget(sz)
+            lay.addWidget(btn_d)
+            self.sh_installed.addItem(item)
+            self.sh_installed.setItemWidget(item, w)
+            item.setSizeHint(w.sizeHint())
+
+    def _remove_shader(self, shader):
+        from ..mods.shader import ShaderManager
+        mgr = ShaderManager(self.settings.game_dir())
+        mgr.remove(shader)
+        self.refresh_shaders()
+        self.win.toast(i18n.tr("shader_installed").format(name=shader.name))
+
+    def search_shaders(self):
+        query = self.sh_search.text().strip()
+        if not query:
+            return
+        from ..mods.shader import ModrinthShaders
+        src = ModrinthShaders()
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            return src.search(query, limit=15)
+
+        def ok(hits):
+            self.sh_list.clear()
+            if not hits:
+                self.win.toast(i18n.tr("shader_no_result"), ok=False)
+            for h in hits:
+                item = QListWidgetItem()
+                w = QWidget()
+                lay = QHBoxLayout(w)
+                lay.setContentsMargins(10, 4, 10, 4)
+                nm = QLabel(h.get("title", "?"))
+                nm.setStyleSheet("font-size:13px; color:#EAF0FF;")
+                info = QLabel(f"光影 · {h.get('downloads', 0)} DL")
+                info.setProperty("subtitle", True)
+                btn = QPushButton(i18n.tr("shader_download"))
+                btn.setProperty("primary", True)
+                btn.setCursor(Qt.PointingHandCursor)
+                pid = h.get("project_id")
+                btn.clicked.connect(lambda _, p=pid, t=h.get("title"): self._install_shader(p, t))
+                lay.addWidget(nm, 1)
+                lay.addWidget(info)
+                lay.addWidget(btn)
+                self.sh_list.addItem(item)
+                self.sh_list.setItemWidget(item, w)
+                item.setSizeHint(w.sizeHint())
+
+        def fail(e):
+            self.win.toast(str(e), ok=False)
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+    def _install_shader(self, project_id, title):
+        from ..mods.shader import ModrinthShaders, ShaderManager
+        src = ModrinthShaders()
+        mgr = ShaderManager(self.settings.game_dir())
+
+        def job(progress=None, stage_cb=None, cancel=None):
+            vers = src.versions(project_id)
+            if not vers:
+                raise RuntimeError(i18n.tr("mods_no_version"))
+            f = src.pick_file(vers[0])
+            if not f:
+                raise RuntimeError(i18n.tr("mods_no_file"))
+            return src.download(f, mgr.dir, progress=progress)
+
+        def ok(path):
+            self.refresh_shaders()
+            self.win.toast(i18n.tr("shader_installed").format(name=title))
+
+        def fail(e):
+            self.win.toast(i18n.tr("mods_install_fail").format(m=title, e=e), ok=False)
+
+        self.worker = TaskWorker(job)
+        self.worker.finished_ok.connect(ok)
+        self.worker.failed.connect(fail)
+        self.worker.start()
+
+
+def utils_http_get(url: str, timeout: int = 120) -> bytes:
+    """下载整合包文件到内存（供 mrpack 解析）。"""
+    import requests
+    r = requests.get(url, timeout=timeout, stream=True)
+    r.raise_for_status()
+    return r.content
