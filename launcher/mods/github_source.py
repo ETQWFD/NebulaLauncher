@@ -43,6 +43,9 @@ class GithubModSource:
         import requests
         url = f"https://api.github.com/repos/{self.repo}/releases?per_page={per_page}"
         r = requests.get(url, headers=self._headers, timeout=30)
+        if r.status_code == 403:
+            raise utils.DownloadError(
+                "GitHub API 访问受限（403，通常是匿名限流）。可在「设置」中为该仓库配置令牌，或稍后重试。")
         if r.status_code != 200:
             raise utils.DownloadError(f"GitHub 仓库访问失败 ({r.status_code}): {self.repo}")
         out = []
