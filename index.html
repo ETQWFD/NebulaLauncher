@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nebula Launcher · 星云启动器 — 优雅的 Minecraft 启动器</title>
+<meta name="description" content="星云启动器 Nebula Launcher：PCL 风格优雅界面、22 种语言、Fabric/Forge 支持、模组中心、内置内存优化。开源免费。">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%233D8BFF'/><circle cx='38' cy='36' r='12' fill='white' opacity='0.9'/><circle cx='64' cy='62' r='7' fill='white' opacity='0.8'/></svg>">
+</head>
+<body>
+
+<!-- 顶栏 -->
+<header class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="brand" href="#top">
+      <span class="brand-dot"></span>
+      <span>Nebula <em>Launcher</em></span>
+    </a>
+    <nav class="menu">
+      <a href="#features">特性</a>
+      <a href="#screenshots">界面</a>
+      <a href="#mods">模组</a>
+      <a href="#download">下载</a>
+      <a href="#opensource">开源</a>
+    </nav>
+    <a class="btn btn-small" href="#download">立即下载</a>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero" id="top">
+  <canvas id="stars"></canvas>
+  <div class="hero-inner">
+    <div class="hero-badge">开源免费 · 22 种语言 · PCL 风格</div>
+    <h1>星云启动器 <span class="grad">Nebula Launcher</span></h1>
+    <p class="hero-sub">一个优雅、流畅、真正可用的 Minecraft Java 版启动器。<br>支持原版 / Fabric / Quilt / Forge，内置模组中心与内存优化，启动后自动让位，只留游戏在运行。</p>
+    <div class="hero-btns">
+      <a class="btn btn-primary" href="#download">⬇ 下载启动器</a>
+      <a class="btn btn-ghost" href="https://github.com/et2416444244/NebulaLauncher" target="_blank" rel="noopener">GitHub 源码</a>
+    </div>
+    <div class="hero-stats">
+      <div><b>22</b><span>界面语言</span></div>
+      <div><b>900+</b><span>版本支持</span></div>
+      <div><b>3</b><span>模组源接入</span></div>
+      <div><b>0</b><span>费用</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 特性 -->
+<section class="section" id="features">
+  <div class="section-head">
+    <h2>为什么选择星云</h2>
+    <p>把「启动」这件事，做得又快又好看</p>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="ico">🎨</div>
+      <h3>PCL 风格界面</h3>
+      <p>左侧导航 + 卡片布局，深蓝主题、圆角控件、流畅交互，开箱即用无需配置。</p>
+    </div>
+    <div class="card">
+      <div class="ico">🌐</div>
+      <h3>22 种语言</h3>
+      <p>中英日韩、法德西俄、阿拉伯语、印地语……一键切换，全世界玩家都能用。</p>
+    </div>
+    <div class="card">
+      <div class="ico">🧩</div>
+      <h3>全加载器支持</h3>
+      <p>原版、Fabric、Quilt、Forge 一键安装，版本随意切换，兼容你的模组生态。</p>
+    </div>
+    <div class="card">
+      <div class="ico">📦</div>
+      <h3>模组中心</h3>
+      <p>连接 GitHub Releases 模组仓库、Modrinth 官方源，需要哪个装哪个。</p>
+    </div>
+    <div class="card">
+      <div class="ico">⚡</div>
+      <h3>内存优化</h3>
+      <p>内置 Aikar's Flags 与 GC 调优，防内存流失、提升帧率，后台占用最低。</p>
+    </div>
+    <div class="card">
+      <div class="ico">🚀</div>
+      <h3>一键起飞</h3>
+      <p>启动后自动关闭自身，只让 Minecraft 单独运行，干净利落。</p>
+    </div>
+  </div>
+</section>
+
+<!-- 界面截图 -->
+<section class="section dark" id="screenshots">
+  <div class="section-head">
+    <h2>界面预览</h2>
+    <p>深色优雅 · 简洁直观</p>
+  </div>
+  <div class="shots">
+    <figure><img src="assets/screenshot_home.png" alt="启动页" loading="lazy"><figcaption>启动页</figcaption></figure>
+    <figure><img src="assets/screenshot_versions.png" alt="版本管理" loading="lazy"><figcaption>版本管理</figcaption></figure>
+    <figure><img src="assets/screenshot_mods.png" alt="模组中心" loading="lazy"><figcaption>模组中心</figcaption></figure>
+    <figure><img src="assets/screenshot_settings.png" alt="设置页" loading="lazy"><figcaption>设置页</figcaption></figure>
+  </div>
+</section>
+
+<!-- 模组 -->
+<section class="section" id="mods">
+  <div class="split">
+    <div>
+      <h2>模组仓库已就绪</h2>
+      <p>启动器内置对接 GitHub Releases 的模组仓库——把模组上传到 Release，所有玩家即可在启动器「模组中心」一键下载安装。</p>
+      <ul class="checklist">
+        <li>模组按 Release 组织，可标注兼容的游戏版本</li>
+        <li>官方 Modrinth 源，海量模组直接搜索安装</li>
+        <li>已安装模组支持启用 / 禁用 / 删除</li>
+      </ul>
+      <a class="btn btn-ghost" href="https://github.com/et2416444244/NebulaLauncher-Mods" target="_blank" rel="noopener">前往模组仓库 →</a>
+    </div>
+    <div class="codebox">
+      <div class="codebar"><span></span><span></span><span></span> releases.json</div>
+      <pre>{
+  "repo": "et2416444244/NebulaLauncher-Mods",
+  "source": "GitHub Releases",
+  "mods": [
+    {
+      "name": "sodium.jar",
+      "tag": "v1.0",
+      "compatible": "1.20.1 / 1.21"
+    }
+  ]
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 下载 -->
+<section class="section dark" id="download">
+  <div class="section-head">
+    <h2>下载</h2>
+    <p>开箱即用 · Windows / macOS / Linux</p>
+  </div>
+  <div class="dl-row">
+    <a class="btn btn-primary btn-lg" href="https://github.com/et2416444244/NebulaLauncher/releases" target="_blank" rel="noopener">⬇ 下载最新 Release</a>
+    <span class="or">或</span>
+    <a class="btn btn-ghost btn-lg" href="https://github.com/et2416444244/NebulaLauncher/archive/refs/heads/main.zip" target="_blank" rel="noopener">下载源码包</a>
+  </div>
+  <p class="tiny">使用方式：<code>pip install -r requirements.txt</code> 后 <code>python main.py</code> 即可启动。</p>
+</section>
+
+<!-- 开源 -->
+<section class="section" id="opensource">
+  <div class="section-head">
+    <h2>开源项目</h2>
+    <p>代码完全开源，欢迎 Star、Issue、PR</p>
+  </div>
+  <div class="repo-cards">
+    <a class="repo" href="https://github.com/et2416444244/NebulaLauncher" target="_blank" rel="noopener">
+      <div class="repo-name">⭐ NebulaLauncher</div>
+      <p>启动器完整源码 + 本官网（GitHub Pages 部署）</p>
+    </a>
+    <a class="repo" href="https://github.com/et2416444244/NebulaLauncher-Mods" target="_blank" rel="noopener">
+      <div class="repo-name">⭐ NebulaLauncher-Mods</div>
+      <p>模组分发仓库，通过 GitHub Releases 供启动器拉取</p>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>Nebula Launcher · 星云启动器 — 由社区维护的开源项目</p>
+  <p class="tiny">Minecraft 是 Mojang AB 的商标，本项目与 Mojang / Microsoft 无隶属关系。</p>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

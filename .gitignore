@@ -1,0 +1,12 @@
+# 缓存
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+# 配置与运行时
+config.json
+runtime/
+# 系统
+.DS_Store
+Thumbs.db
